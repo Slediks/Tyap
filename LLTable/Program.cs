@@ -14,9 +14,9 @@ static class Program
         Console.WriteLine( table.ToConsoleTable() );
 
         
-        // var input = FileWorker.ReadFileToString( "input.txt" );
-        // var walker = new TableWalker( table );
-        // walker.Run( input );
+        var input = FileWorker.ReadFileToString( "input.txt" );
+        var walker = new TableWalker( table );
+        walker.Run( input );
 
         // using StreamWriter sw = new StreamWriter( "test.csv" );
         // sw.WriteLine(table.ToTable());

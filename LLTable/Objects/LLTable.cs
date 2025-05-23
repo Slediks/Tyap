@@ -118,7 +118,7 @@ public class LLTable
                 var key = Table.First( r => r.Transition == row.Id ).Name;
         
                 if ( !CreateEps( key, row ) ) continue;
-                ReplaceEps( key, row );
+                ReplaceEps( row );
             }
         }
         
@@ -181,9 +181,9 @@ public class LLTable
         return Table.Last( row => row.IsKey && row.Id < id ).Name;
     }
 
-    private void ReplaceEps( string key, LLRow epsRow )
+    private void ReplaceEps( LLRow epsRow )
     {
-        foreach ( var row in Table.Where( row => row.Name == key && row.DirectSet.Contains( epsRow.Name ) ) )
+        foreach ( var row in Table.Where( row => row.DirectSet.Contains( epsRow.Name ) ) )
         {
             row.DirectSet.Remove( epsRow.Name );
             row.DirectSet.AddRange( row.IsKey || row.Stack == null ? epsRow.DirectSet : GetDirectionSet( row.Stack ) );

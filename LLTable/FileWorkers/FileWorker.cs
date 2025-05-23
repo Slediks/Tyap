@@ -47,7 +47,7 @@ public static class FileWorker
             throw new Exception( "Правила не должны содержать несколько одинаковых ключей" );
         }
 
-        // result.Add( "Z", [[rawRules[0][0], "#"]] );
+        result.Add( "Z", [[rawRules[0][0], "#"]] );
 
         foreach ( var line in rawRules )
         {
