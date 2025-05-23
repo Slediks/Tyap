@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+.idea/
+lab1/bin/
+lab1/obj/
+LLTable/bin/
+LLTable/obj/
+Robot/obj/
+SLRTable/obj/
+SLRTable/bin/
+Robot/bin/

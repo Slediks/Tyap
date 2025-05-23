@@ -1,0 +1,32 @@
+﻿using SLRTable.Objects.Rules;
+
+namespace SLRTable.Objects.Table;
+
+public class Row
+{
+    public RowItem Key;
+    public List<RowItem> Items;
+
+    public Row(RowItem key, List<RowItem> items)
+    {
+        Key = key;
+        Items = items;
+    }
+
+    public string ToTable( List<string> columns )
+    {
+        
+        var strings = columns.Select( str =>
+        {
+            var ruleItems = Items.FirstOrDefault( i => i.Name == str )?.Items;
+            return ruleItems != null ? String.Join( ' ', ruleItems ) : " ";
+        } ).ToList();
+        
+        return Key + ";" + String.Join( ';', strings );
+    }
+
+    public override string ToString()
+    {
+        return $"{Key} -> {String.Join( " | ", Items )}";
+    }
+}
