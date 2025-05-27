@@ -4,37 +4,49 @@ public static class FileWorker
 {
     public static string[] ReadFileToArray( string fileName )
     {
-        List<string> result = [];
-        using var sr = new StreamReader( fileName );
-        while ( !sr.EndOfStream )
+        var lines = ReadAllLines(fileName);
+        ValidateFileNotEmpty(lines, fileName);
+
+        return lines.ToArray();
+    }
+    
+    private static List<string> ReadAllLines(string fileName)
+    {
+        List<string> result = new();
+        using var sr = new StreamReader(fileName);
+        while (!sr.EndOfStream)
         {
             var line = sr.ReadLine();
-            if ( line != null ) result.Add( line );
+            if (line != null) result.Add(line);
         }
+        return result;
+    }
 
-        if ( result.Count == 0 )
+    private static void ValidateFileNotEmpty(List<string> lines, string fileName)
+    {
+        if (lines.Count == 0)
         {
-            throw new Exception( $"Файл {fileName} пуст" );
+            throw new Exception($"Файл {fileName} пуст");
         }
-
-        return result.ToArray();
     }
 
     public static string ReadFileToString( string fileName )
     {
         var stringArray = ReadFileToArray( fileName );
-
-        return String.Join( " ", stringArray.Select( s =>
+        return NormalizeWhitespace(stringArray);
+    }
+    
+    private static string NormalizeWhitespace(string[] lines)
+    {
+        return string.Join(" ", lines.Select(s =>
         {
-            var newString = s.Replace( '\t', ' ' );
-
-            while ( newString.Contains( "  " ) )
+            var newString = s.Replace('\t', ' ');
+            while (newString.Contains("  "))
             {
-                newString = newString.Replace( "  ", " " );
+                newString = newString.Replace("  ", " ");
             }
-
             return newString;
-        } ) );
+        }));
     }
 
     public static Dictionary<string, List<List<string>>> ConvertToRulesDict( string[] array )
