@@ -143,28 +143,36 @@ public static class FileWorker
         }
     }
     
-    public static void CleanUnusedKeys(ref Dictionary<string, List<List<string>>> dict)
+    public static string[] FilterRules(string[] rawRules)
     {
         var usedKeys = new HashSet<string>();
+        var rules = rawRules.Select(str => str.Split(" -> ")).ToList();
         
-        foreach (var keyValuePair in dict)
+        usedKeys.Add(rules[0][0]);
+
+        bool updated;
+        do
         {
-            foreach (var val in keyValuePair.Value)
+            updated = false;
+            foreach (var rule in rules)
             {
-                foreach (var item in val)
+                var key = rule[0];
+                var values = rule[1].Split(" | ").SelectMany(v => v.Split(' ')).ToList();
+
+                if (usedKeys.Contains(key) && values.Any(v => !usedKeys.Contains(v) && rules.Any(r => r[0] == v)))
                 {
-                    if (dict.ContainsKey(item))
+                    foreach (var value in values)
                     {
-                        usedKeys.Add(item);
+                        if (!usedKeys.Contains(value) && rules.Any(r => r[0] == value))
+                        {
+                            usedKeys.Add(value);
+                            updated = true;
+                        }
                     }
                 }
             }
-        }
+        } while (updated);
         
-        var unusedKeys = dict.Keys.Where(key => !usedKeys.Contains(key) && key != "Z").ToList();
-        foreach (var key in unusedKeys)
-        {
-            dict.Remove(key);
-        }
+        return rawRules.Where(rule => usedKeys.Contains(rule.Split(" -> ")[0])).ToArray();
     }
 }

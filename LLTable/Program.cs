@@ -6,10 +6,10 @@ static class Program
 {
     static void Main()
     {
-        var dict = FileWorker.ConvertToRulesDict( FileWorker.ReadFileToArray( "rules.txt" ) );
-        FileWorker.WriteToConsole( dict );
-        FileWorker.CleanUnusedKeys(ref dict);
-        FileWorker.WriteToConsole( dict );
+        var rawRules = FileWorker.ReadFileToArray("rules.txt");
+        var filteredRules = FileWorker.FilterRules(rawRules);
+        var dict = FileWorker.ConvertToRulesDict(filteredRules);
+        FileWorker.WriteToConsole(dict);
         
         var table = new Objects.LLTable( dict );
 
