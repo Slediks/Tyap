@@ -142,4 +142,29 @@ public static class FileWorker
             }
         }
     }
+    
+    public static void CleanUnusedKeys(ref Dictionary<string, List<List<string>>> dict)
+    {
+        var usedKeys = new HashSet<string>();
+        
+        foreach (var keyValuePair in dict)
+        {
+            foreach (var val in keyValuePair.Value)
+            {
+                foreach (var item in val)
+                {
+                    if (dict.ContainsKey(item))
+                    {
+                        usedKeys.Add(item);
+                    }
+                }
+            }
+        }
+        
+        var unusedKeys = dict.Keys.Where(key => !usedKeys.Contains(key) && key != "Z").ToList();
+        foreach (var key in unusedKeys)
+        {
+            dict.Remove(key);
+        }
+    }
 }

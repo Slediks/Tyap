@@ -8,6 +8,8 @@ static class Program
     {
         var dict = FileWorker.ConvertToRulesDict( FileWorker.ReadFileToArray( "rules.txt" ) );
         FileWorker.WriteToConsole( dict );
+        FileWorker.CleanUnusedKeys(ref dict);
+        FileWorker.WriteToConsole( dict );
         
         var table = new Objects.LLTable( dict );
 
