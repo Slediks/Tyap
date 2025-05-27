@@ -10,6 +10,71 @@ public static class FileWorker
         return lines.ToArray();
     }
     
+    public static string ReadFileToString( string fileName )
+    {
+        var stringArray = ReadFileToArray( fileName );
+        return NormalizeWhitespace(stringArray);
+    }
+    
+    public static Dictionary<string, List<List<string>>> ConvertToRulesDict( string[] array )
+    {   
+        var rawRules = ParseRawRules(array);
+        ValidateUniqueKeys(rawRules, array.Length);
+        Dictionary<string, List<List<string>>> result = new();
+        AddStartRule(result, rawRules[0][0]);
+
+        foreach ( var line in rawRules )
+        {
+            ProcessRule(line, ref result);
+        }
+
+        return result;
+    }
+    
+    public static void WriteToConsole( Dictionary<string, List<List<string>>> dict )
+    {
+        foreach ( var keyValuePair in dict )
+        {
+            foreach ( var val in keyValuePair.Value )
+            {
+                Console.WriteLine( $"{keyValuePair.Key}: {String.Join( " ", val )}" );
+            }
+        }
+    }
+    
+    public static string[] FilterRules(string[] rawRules)
+    {
+        var usedKeys = new HashSet<string>();
+        var rules = rawRules.Select(str => str.Split(" -> ")).ToList();
+        
+        usedKeys.Add(rules[0][0]);
+
+        bool updated;
+        do
+        {
+            updated = false;
+            foreach (var rule in rules)
+            {
+                var key = rule[0];
+                var values = rule[1].Split(" | ").SelectMany(v => v.Split(' ')).ToList();
+
+                if (usedKeys.Contains(key) && values.Any(v => !usedKeys.Contains(v) && rules.Any(r => r[0] == v)))
+                {
+                    foreach (var value in values)
+                    {
+                        if (!usedKeys.Contains(value) && rules.Any(r => r[0] == value))
+                        {
+                            usedKeys.Add(value);
+                            updated = true;
+                        }
+                    }
+                }
+            }
+        } while (updated);
+        
+        return rawRules.Where(rule => usedKeys.Contains(rule.Split(" -> ")[0])).ToArray();
+    }
+    
     private static List<string> ReadAllLines(string fileName)
     {
         List<string> result = new();
@@ -29,12 +94,6 @@ public static class FileWorker
             throw new Exception($"Файл {fileName} пуст");
         }
     }
-
-    public static string ReadFileToString( string fileName )
-    {
-        var stringArray = ReadFileToArray( fileName );
-        return NormalizeWhitespace(stringArray);
-    }
     
     private static string NormalizeWhitespace(string[] lines)
     {
@@ -47,21 +106,6 @@ public static class FileWorker
             }
             return newString;
         }));
-    }
-
-    public static Dictionary<string, List<List<string>>> ConvertToRulesDict( string[] array )
-    {   
-        var rawRules = ParseRawRules(array);
-        ValidateUniqueKeys(rawRules, array.Length);
-        Dictionary<string, List<List<string>>> result = new();
-        AddStartRule(result, rawRules[0][0]);
-
-        foreach ( var line in rawRules )
-        {
-            ProcessRule(line, ref result);
-        }
-
-        return result;
     }
     
     private static List<string[]> ParseRawRules(string[] array)
@@ -79,7 +123,7 @@ public static class FileWorker
     
     private static void AddStartRule(Dictionary<string, List<List<string>>> result, string startKey)
     {
-        result.Add("Z", new List<List<string>> { new List<string> { startKey, "#" } });
+        result.Add("Z", [new List<string> { startKey, "#" }]);
     }
     
     private static void ProcessRule(string[] line, ref Dictionary<string, List<List<string>>> result)
@@ -136,10 +180,10 @@ public static class FileWorker
     private static void RemoveSameStart( string name, ref List<List<string>> variants, ref int ruleCount,
         ref Dictionary<string, List<List<string>>> result )
     {
-        var sameVariants = variants.Select( variant => variant.ToList() ).GroupBy( variant => variant.First() )
-            .ToList();
-        if ( !sameVariants.Any( group => group.Count() > 1 ) ) return;
-        List<List<string>> newVariants = [];
+        var sameVariants = GroupVariantsByFirstElement(variants);
+        if (!sameVariants.Any(group => group.Count() > 1)) return;
+        
+        List<List<string>> newVariants = new();
 
         foreach ( var variant in sameVariants )
         {
@@ -148,30 +192,14 @@ public static class FileWorker
                 newVariants.Add( variant.SelectMany( list => list ).ToList() );
                 continue;
             }
-
-            List<string> sameStart = [];
-            var newGroup = variant;
-            var isEps = false;
-
-            do
-            {
-                sameStart.Add( newGroup.Key );
-
-                if ( newGroup.Any( group => group.Count == sameStart.Count ) )
-                {
-                    isEps = true;
-                    break;
-                }
-
-                newGroup = newGroup.Select( list => list ).GroupBy( list => list.Skip( sameStart.Count ).First() )
-                    .First();
-            } while ( newGroup.Count() == variant.Count() );
+            
+            var sameStart = ExtractCommonPrefix(variant);
+            var isEps = CheckForEpsilon(variant, sameStart);
 
             var newName = name + ruleCount++;
-            newVariants.Add( [..sameStart, newName] );
+            newVariants.Add([..sameStart, newName]);
 
-            var resultVariants = variant.Select( list => list.Skip( sameStart.Count ).ToList() )
-                .Where( list => list.Count > 0 ).ToList();
+            var resultVariants = DecreaseVariants(variant, sameStart);
             if ( isEps )
             {
                 resultVariants.Add( ["eps"] );
@@ -184,48 +212,47 @@ public static class FileWorker
 
         variants = newVariants;
     }
-
-    public static void WriteToConsole( Dictionary<string, List<List<string>>> dict )
+    
+    private static List<IGrouping<string, List<string>>> GroupVariantsByFirstElement(List<List<string>> variants)
     {
-        foreach ( var keyValuePair in dict )
-        {
-            foreach ( var val in keyValuePair.Value )
-            {
-                Console.WriteLine( $"{keyValuePair.Key}: {String.Join( " ", val )}" );
-            }
-        }
+        var result = variants.GroupBy(variant => variant.First());
+        return result.ToList();
     }
     
-    public static string[] FilterRules(string[] rawRules)
+    private static bool CheckForEpsilon(IEnumerable<List<string>> group, List<string> prefix)
     {
-        var usedKeys = new HashSet<string>();
-        var rules = rawRules.Select(str => str.Split(" -> ")).ToList();
-        
-        usedKeys.Add(rules[0][0]);
+        return group.Any(variant => variant.Count == prefix.Count);
+    }
+    
+    private static List<string> ExtractCommonPrefix(IEnumerable<List<string>> group)
+    {
+        var prefix = new List<string>();
+        var groupList = group.ToList();
 
-        bool updated;
-        do
+        if (!groupList.Any()) return prefix;
+
+        var firstVariant = groupList.First();
+        for (var i = 0; i < firstVariant.Count; i++)
         {
-            updated = false;
-            foreach (var rule in rules)
+            var currentElement = firstVariant[i];
+            if (groupList.All(variant => variant.Count > i && variant[i] == currentElement))
             {
-                var key = rule[0];
-                var values = rule[1].Split(" | ").SelectMany(v => v.Split(' ')).ToList();
-
-                if (usedKeys.Contains(key) && values.Any(v => !usedKeys.Contains(v) && rules.Any(r => r[0] == v)))
-                {
-                    foreach (var value in values)
-                    {
-                        if (!usedKeys.Contains(value) && rules.Any(r => r[0] == value))
-                        {
-                            usedKeys.Add(value);
-                            updated = true;
-                        }
-                    }
-                }
+                prefix.Add(currentElement);
             }
-        } while (updated);
-        
-        return rawRules.Where(rule => usedKeys.Contains(rule.Split(" -> ")[0])).ToArray();
+            else
+            {
+                break;
+            }
+        }
+
+        return prefix;
+    }
+    
+    private static List<List<string>> DecreaseVariants(IEnumerable<List<string>> group, List<string> prefix)
+    {
+        return group
+            .Select(variant => variant.Skip(prefix.Count).ToList())
+            .Where(variant => variant.Count > 0)
+            .ToList();
     }
 }
