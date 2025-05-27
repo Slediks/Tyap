@@ -83,46 +83,65 @@ public class LLTable
             }
         }
 
-        foreach ( var row in Table.Where( row => row.Transition == 0 ) )
-        {
-            row.Transition = Table.First( r => r.Name == row.Name && r.IsKey ).Id;
-        }
-
+        FillTransitions();
         GenerateDirectSet();
+    }
+    
+    private void FillTransitions()
+    {
+        foreach (var row in Table.Where(row => row.Transition == 0))
+        {
+            row.Transition = Table.First(r => r.Name == row.Name && r.IsKey).Id;
+        }
     }
 
     private void GenerateDirectSet()
     {
-        foreach ( var row in Table.Where( row => row.DirectSet.Count == 0 ) )
+        InitializeDirectSets();
+        ProcessEpsilonRows();
+        DeleteDouble();
+    }
+    
+    private void InitializeDirectSets()
+    {
+        foreach (var row in Table.Where(row => row.DirectSet.Count == 0))
         {
-            if ( row.DirectSet.Count > 0 ) continue;
+            if (row.DirectSet.Count > 0) continue;
 
-            row.DirectSet.AddRange( row.IsKey
-                ? GetDirectionSet( row.Transition )
-                : Table.Where( r => r.IsKey && r.Name == row.Name ).SelectMany( r => GetDirectionSet( r.Id ) )
-                    .Distinct() );
+            row.DirectSet.AddRange(row.IsKey
+                ? GetDirectionSet(row.Transition)
+                : Table.Where(r => r.IsKey && r.Name == row.Name)
+                    .SelectMany(r => GetDirectionSet(r.Id))
+                    .Distinct());
         }
-
+    }
+    
+    private void ProcessEpsilonRows()
+    {
         var epsCounter = 0;
-        
-        while ( Table.Any( row => row.DirectSet.Any( str => str.StartsWith( Eps + "_" ) ) ) )
+
+        while (Table.Any(row => row.DirectSet.Any(str => str.StartsWith(Eps + "_"))))
         {
             var epsRows = Table
-                .Where( row => row.EpsNumber != null && row.DirectSet.Contains( row.Name ) ).ToList();
-        
-            if ( epsCounter == epsRows.Count ) throw new Exception( "Loop in epsilon" );
+                .Where(row => row.EpsNumber != null && row.DirectSet.Contains(row.Name))
+                .ToList();
+
+            if (epsCounter == epsRows.Count) throw new Exception("Loop in epsilon");
             epsCounter = epsRows.Count;
-        
-            foreach ( var row in epsRows )
+
+            foreach (var row in epsRows)
             {
-                var key = Table.First( r => r.Transition == row.Id ).Name;
-        
-                if ( !CreateEps( key, row ) ) continue;
-                ReplaceEps( row );
+                HandleEpsilonRow(row);
             }
         }
-        
-        DeleteDouble();
+    }
+    
+    private void HandleEpsilonRow(LLRow row)
+    {
+        var key = Table.First(r => r.Transition == row.Id).Name;
+
+        if (!CreateEps(key, row)) return;
+        ReplaceEps(row);
     }
 
     private void DeleteDouble()
