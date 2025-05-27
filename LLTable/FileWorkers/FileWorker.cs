@@ -50,46 +50,87 @@ public static class FileWorker
     }
 
     public static Dictionary<string, List<List<string>>> ConvertToRulesDict( string[] array )
-    {
+    {   
+        var rawRules = ParseRawRules(array);
+        ValidateUniqueKeys(rawRules, array.Length);
         Dictionary<string, List<List<string>>> result = new();
-        var rawRules = array.Select( str => str.Split( " -> " ) ).ToArray();
-
-        if ( rawRules.Select( sArr => sArr[0] ).Distinct().Count() < array.Length )
-        {
-            throw new Exception( "Правила не должны содержать несколько одинаковых ключей" );
-        }
-
-        result.Add( "Z", [[rawRules[0][0], "#"]] );
+        AddStartRule(result, rawRules[0][0]);
 
         foreach ( var line in rawRules )
         {
-            result.Add( line[0], [] );
-
-            var ruleCount = 0;
-            var variants = line[1].Split( " | " ).Select( str => str.Split( ' ' ).ToList() ).ToList();
-
-            RemoveSameStart( line[0], ref variants, ref ruleCount, ref result );
-
-            if ( variants.Any( variant => variant.First() == line[0] ) ) // Левая рекурсия
-            {
-                var newName = line[0] + ruleCount;
-                var recursiveVariants = variants.Where( variant => variant.First() == line[0] )
-                    .Select( variant => variant.Skip( 1 ).Append( newName ).ToList() )
-                    .Append( ["eps"] )
-                    .ToList();
-                variants = variants.Where( variant => variant.First() != line[0] )
-                    .Select( variant => variant.Append( newName ).ToList() )
-                    .ToList();
-
-
-                result.Add( newName, recursiveVariants );
-            }
-
-
-            result[line[0]].AddRange( variants );
+            ProcessRule(line, ref result);
         }
 
         return result;
+    }
+    
+    private static List<string[]> ParseRawRules(string[] array)
+    {
+        return array.Select(str => str.Split(" -> ")).ToList();
+    }
+    
+    private static void ValidateUniqueKeys(List<string[]> rawRules, int ruleCount)
+    {
+        if (rawRules.Select(sArr => sArr[0]).Distinct().Count() < ruleCount)
+        {
+            throw new Exception("Правила не должны содержать несколько одинаковых ключей");
+        }
+    }
+    
+    private static void AddStartRule(Dictionary<string, List<List<string>>> result, string startKey)
+    {
+        result.Add("Z", new List<List<string>> { new List<string> { startKey, "#" } });
+    }
+    
+    private static void ProcessRule(string[] line, ref Dictionary<string, List<List<string>>> result)
+    {   
+        result.Add(line[0], new List<List<string>>());
+        var ruleCount = 0;
+        var variants = ParseVariants(line[1]);
+
+        RemoveSameStart(line[0], ref variants, ref ruleCount, ref result);
+
+        if (HasLeftRecursion(line[0], variants))
+        {
+            HandleLeftRecursion(line[0], ref variants, ref ruleCount, ref result);
+        }
+
+        result[line[0]].AddRange(variants);
+    }
+    
+    private static List<List<string>> ParseVariants(string rule)
+    {
+        return rule.Split(" | ").Select(str => str.Split(' ').ToList()).ToList();
+    }
+    
+    private static bool HasLeftRecursion(string key, List<List<string>> variants)
+    {
+        return variants.Any(variant => variant.First() == key);
+    }
+    
+    private static void HandleLeftRecursion(string key, ref List<List<string>> variants, ref int ruleCount,
+        ref Dictionary<string, List<List<string>>> result)
+    {
+        var newName = key + ruleCount;
+        var recursiveVariants = ExtractRecursiveVariants(key, variants, newName);
+        variants = RemoveRecursiveVariants(key, variants, newName);
+
+        result.Add(newName, recursiveVariants);
+    }
+    
+    private static List<List<string>> ExtractRecursiveVariants(string key, List<List<string>> variants, string newName)
+    {
+        return variants.Where(variant => variant.First() == key)
+            .Select(variant => variant.Skip(1).Append(newName).ToList())
+            .Append(new List<string> { "eps" })
+            .ToList();
+    }
+
+    private static List<List<string>> RemoveRecursiveVariants(string key, List<List<string>> variants, string newName)
+    {
+        return variants.Where(variant => variant.First() != key)
+            .Select(variant => variant.Append(newName).ToList())
+            .ToList();
     }
 
     private static void RemoveSameStart( string name, ref List<List<string>> variants, ref int ruleCount,
