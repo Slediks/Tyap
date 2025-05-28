@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Content Include="bin\Debug\net9.0\input.txt" />
       <Content Include="bin\Debug\net9.0\test.csv" />
       <Content Include="bin\Debug\net9.0\rules.txt" />
     </ItemGroup>

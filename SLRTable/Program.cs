@@ -17,8 +17,9 @@ static class Program
         
         var table = new Table( rules.GetDistItems(), rules );
         
+        var input = FileWorker.ReadFileToString( "input.txt" );
         var tw = new TableWalker( table );
-        tw.Run( "" );
+        tw.Run( input );
 
         using StreamWriter sw = new StreamWriter( "test.csv" );
         

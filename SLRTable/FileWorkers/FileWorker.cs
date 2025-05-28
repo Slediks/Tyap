@@ -9,6 +9,12 @@ public static class FileWorker
 
         return lines.ToArray();
     }
+    
+    public static string ReadFileToString( string fileName )
+    {
+        var stringArray = ReadFileToArray( fileName );
+        return NormalizeWhitespace(stringArray);
+    }
 
     public static string[] FilterRules( string[] rawRules )
     {
@@ -94,6 +100,19 @@ public static class FileWorker
         {
             throw new Exception( $"Файл {fileName} пуст" );
         }
+    }
+    
+    private static string NormalizeWhitespace(string[] lines)
+    {
+        return string.Join(" ", lines.Select(s =>
+        {
+            var newString = s.Replace('\t', ' ');
+            while (newString.Contains("  "))
+            {
+                newString = newString.Replace("  ", " ");
+            }
+            return newString;
+        }));
     }
 
     private static List<string[]> ParseRawRules( string[] array )
