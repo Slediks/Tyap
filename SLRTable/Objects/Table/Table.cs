@@ -9,6 +9,9 @@ public class Table
 
     private readonly RulesList _rules;
 
+    public RowItem GetStartKeyItem => Rows.First().Key;
+    public Rule GetRuleByIndex( int index ) => _rules.Rules.First( rule => rule.Index == index );
+
     public Table( List<string> columns, RulesList rules )
     {
         Columns = columns;
@@ -16,6 +19,11 @@ public class Table
 
         GenerateRows();
     }
+
+    public Row GetRowByKey( RowItem key )
+    {
+        return Rows.First( r => r.Key == key );
+    } 
 
     public string ToTable()
     {

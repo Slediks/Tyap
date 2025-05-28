@@ -82,4 +82,9 @@ public class RulesList
 
         return result;
     }
+
+    public override string ToString()
+    {
+        return String.Join( "\n", Rules.Select( r => r.ToString() ) );
+    }
 }

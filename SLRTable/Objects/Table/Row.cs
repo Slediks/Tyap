@@ -13,6 +13,11 @@ public class Row
         Items = items;
     }
 
+    public RowItem? GetItemByKey( string key )
+    {
+        return Items.FirstOrDefault( item => item.Name == key );
+    }
+
     public string ToTable( List<string> columns )
     {
         

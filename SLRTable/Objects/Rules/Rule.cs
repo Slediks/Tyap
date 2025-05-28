@@ -18,6 +18,8 @@ public class Rule
             RuleItems.Add( new RuleItem( Index, RuleItems.Count + 1, ri, keys.Contains( ri ) ) );
         } );
     }
+    
+    public List<string> GetItemsList() => RuleItems.Select( ri => ri.Name ).ToList();
 
     public List<string> GetRuleNotKeyItems()
     {
