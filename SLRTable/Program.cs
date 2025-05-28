@@ -8,14 +8,17 @@ static class Program
 {
     static void Main( string[] args )
     {
-        var rules = new RulesList( FileWorker.ConvertToRulesDict( FileWorker.ReadFileToArray( "test.txt" ) ) );
+        var rawRules = FileWorker.ReadFileToArray("rules.txt");
+        var filteredRules = FileWorker.FilterRules(rawRules);
+        var dict = FileWorker.ConvertToRulesDict(filteredRules);
+        var rules = new RulesList( dict );
         
         Console.WriteLine( rules.ToString() );
         
         var table = new Table( rules.GetDistItems(), rules );
         
         var tw = new TableWalker( table );
-        tw.Run( "- ( a + a ) * a" );
+        tw.Run( "" );
 
         using StreamWriter sw = new StreamWriter( "test.csv" );
         

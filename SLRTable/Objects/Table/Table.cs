@@ -42,6 +42,7 @@ public class Table
             firstRow ) );
 
         keysToCheck.AddRange( firstRow );
+        keysToCheck.RemoveAll( item => item.IsEnd );
 
         while ( keysToCheck.Count != 0 )
         {

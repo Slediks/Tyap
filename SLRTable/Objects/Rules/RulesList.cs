@@ -35,7 +35,15 @@ public class RulesList
 
     public List<RuleItem> GetItemsByKey( string key )
     {
-        return Rules.Where( r => r.Name == key ).Select( r => r.GetFirst() ).ToList();
+        var rules = Rules.Where( r => r.Name == key ).Select( r => r.GetFirst() ).ToList();
+        if ( rules.All( item => item.Name != "#" ) ) return rules;
+        
+        var newRules = rules.ToList();
+        newRules.RemoveAll( item => item.Name == "#" );
+
+        newRules.AddRange( from rule in rules.Where( item => item.Name == "#" )
+            select new RuleItem( rule.ParentIndex, rule.Index, rule.Name, rule.IsKey, true ) );
+        return newRules;
     }
 
     public List<RuleItem> GetNextItems( RuleItem item )
@@ -44,14 +52,13 @@ public class RulesList
         var nextItem = rule.GetNext( item );
 
         if ( nextItem == null ) return GetEndItems( rule );
-        
+
         if ( nextItem.Name == "#" )
         {
             return [new RuleItem( rule.Index, null, nextItem.Name, false, true )];
         }
-            
-        return [nextItem];
 
+        return [nextItem];
     }
 
     private List<RuleItem> GetEndItems( Rule rule )

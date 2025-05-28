@@ -9,7 +9,7 @@
 
     <ItemGroup>
       <Content Include="bin\Debug\net9.0\test.csv" />
-      <Content Include="bin\Debug\net9.0\test.txt" />
+      <Content Include="bin\Debug\net9.0\rules.txt" />
     </ItemGroup>
 
 </Project>

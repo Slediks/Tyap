@@ -7,6 +7,7 @@ public class TableWalker( Table table )
     public void Run( string input )
     {
         input += " #";
+        input = input.Trim();
         Console.WriteLine( $"Входная строка: {input}" );
 
         var words = new Stack<string>( input.Split( ' ' ).Reverse() );
@@ -54,7 +55,7 @@ public class TableWalker( Table table )
         var rule = table.GetRuleByIndex( ruleIndex );
         var ruleList = rule.GetItemsList();
         ruleList.Reverse();
-        if ( ruleIndex == 1 )
+        if ( rule.Name == table.GetStartKeyItem.Name )
         {
             ruleList.RemoveAt( 0 );
         }
