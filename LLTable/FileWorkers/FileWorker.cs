@@ -71,8 +71,18 @@ public static class FileWorker
                 }
             }
         } while (updated);
-        
-        return rawRules.Where(rule => usedKeys.Contains(rule.Split(" -> ")[0])).ToArray();
+    
+        // Проверяем, все ли правила используются
+        var unusedRules = rawRules
+            .Where(rule => !usedKeys.Contains(rule.Split(" -> ")[0]))
+            .ToList();
+    
+        if (unusedRules.Any())
+        {
+            throw new Exception($"Обнаружено неиспользуемое правило: {string.Join(", ", unusedRules)}");
+        }
+    
+        return rawRules;
     }
     
     private static List<string> ReadAllLines(string fileName)
