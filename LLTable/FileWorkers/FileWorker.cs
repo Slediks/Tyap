@@ -42,7 +42,7 @@ public static class FileWorker
         }
     }
     
-    public static string[] FilterRules(string[] rawRules)
+    public static void ValidateRules(string[] rawRules)
     {
         var usedKeys = new HashSet<string>();
         var rules = rawRules.Select(str => str.Split(" -> ")).ToList();
@@ -71,8 +71,7 @@ public static class FileWorker
                 }
             }
         } while (updated);
-    
-        // Проверяем, все ли правила используются
+        
         var unusedRules = rawRules
             .Where(rule => !usedKeys.Contains(rule.Split(" -> ")[0]))
             .ToList();
@@ -81,8 +80,6 @@ public static class FileWorker
         {
             throw new Exception($"Обнаружено неиспользуемое правило: {string.Join(", ", unusedRules)}");
         }
-    
-        return rawRules;
     }
     
     private static List<string> ReadAllLines(string fileName)
@@ -264,5 +261,33 @@ public static class FileWorker
             .Select(variant => variant.Skip(prefix.Count).ToList())
             .Where(variant => variant.Count > 0)
             .ToList();
+    }
+    
+    
+    public static void ValidateProductivity(Dictionary<string, List<List<string>>> rulesDict)
+    {
+        var productive = new HashSet<string>();
+        var updated = true;
+
+        while (updated)
+        {
+            updated = false;
+
+            foreach (var rule in rulesDict)
+            {
+                if (productive.Contains(rule.Key)) continue;
+                if (rule.Value.Any(variant => variant.All(symbol => productive.Contains(symbol) || !rulesDict.ContainsKey(symbol))))
+                {
+                    productive.Add(rule.Key);
+                    updated = true;
+                }
+            }
+        }
+        
+        var unproductiveRules = rulesDict.Keys.Except(productive).ToList();
+        if (unproductiveRules.Any())
+        {
+            throw new Exception($"Обнаружены непродуктивные правила: {string.Join(", ", unproductiveRules)}");
+        }
     }
 }
