@@ -42,7 +42,7 @@ public class TableWalker( Table table )
 
         if ( words.Count == 0 )
         {
-            Console.WriteLine("Входные данные не соответсвуют правилам");
+            Console.WriteLine("Входные данные не соответствуют правилам");
             return;
         }
         

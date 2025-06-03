@@ -78,7 +78,7 @@ public class RulesList
 
             if ( nextItem != null )
             {
-                result.Add( new RuleItem( rule.Index, null, nextItem.Name, false, true ) );
+                result.Add( new RuleItem( rule.Index, null, nextItem.Name, nextItem.IsKey, true ) );
                 continue;
             }
 

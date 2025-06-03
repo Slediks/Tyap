@@ -93,7 +93,12 @@ public class Table
 
             if ( item.IsKey )
             {
-                itemsToCheck.AddRange( _rules.GetItemsByKey( item.Name ) );
+                var newItemsToCheck = _rules.GetItemsByKey( item.Name );
+                if (item.IsEnd)
+                {
+                    newItemsToCheck = newItemsToCheck.Select( ri => new RuleItem( item.ParentIndex, null, ri.Name, ri.IsKey, true )).ToList();
+                }
+                itemsToCheck.AddRange( newItemsToCheck );
                 itemsToCheck.RemoveAll( ri => result.Contains( ri ) );
             }
         }
