@@ -84,7 +84,7 @@ public static class FileWorker
     
     private static List<string> ReadAllLines(string fileName)
     {
-        List<string> result = new();
+        List<string> result = [];
         using var sr = new StreamReader(fileName);
         while (!sr.EndOfStream)
         {
@@ -130,12 +130,12 @@ public static class FileWorker
     
     private static void AddStartRule(Dictionary<string, List<List<string>>> result, string startKey)
     {
-        result.Add("Z", [new List<string> { startKey, "#" }]);
+        result.Add("Z", [new List<string> { startKey, "end" }]);
     }
     
     private static void ProcessRule(string[] line, ref Dictionary<string, List<List<string>>> result)
     {   
-        result.Add(line[0], new List<List<string>>());
+        result.Add(line[0], []);
         var ruleCount = 0;
         var variants = ParseVariants(line[1]);
 
@@ -173,7 +173,7 @@ public static class FileWorker
     {
         return variants.Where(variant => variant.First() == key)
             .Select(variant => variant.Skip(1).Append(newName).ToList())
-            .Append(new List<string> { "eps" })
+            .Append(["eps"])
             .ToList();
     }
 
@@ -190,7 +190,7 @@ public static class FileWorker
         var sameVariants = GroupVariantsByFirstElement(variants);
         if (!sameVariants.Any(group => group.Count() > 1)) return;
         
-        List<List<string>> newVariants = new();
+        List<List<string>> newVariants = [];
 
         foreach ( var variant in sameVariants )
         {

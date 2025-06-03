@@ -6,8 +6,7 @@ static class Program
 {
     static void Main()
     {
-        // var lexer = new Lexer("input.txt");
-        // var tokens = lexer.Tokens;
+        var lexer = new Lexer("input.txt");
 
         var rawRules = FileWorker.ReadFileToArray("rules.txt");
         FileWorker.ValidateRules(rawRules);
@@ -15,14 +14,13 @@ static class Program
         FileWorker.ValidateProductivity(dict);
         FileWorker.WriteToConsole(dict);
         
-        // var table = new Objects.LLTable( dict );
-        //
-        // Console.WriteLine( table.ToConsoleTable() );
-
-
-        // var input = FileWorker.ReadFileToString( "input.txt" );
-        // var walker = new TableWalker( table );
-        // walker.Run( input );
+        var table = new Objects.LLTable( dict );
+        
+        Console.WriteLine( table.ToConsoleTable() );
+        
+        
+        var walker = new TableWalker( table, lexer );
+        walker.Run();
         //
         // using StreamWriter sw = new StreamWriter( "test.csv" );
         // sw.WriteLine(table.ToTable());

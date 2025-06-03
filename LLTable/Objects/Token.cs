@@ -16,4 +16,9 @@ public struct Token
     public int StartPos;
     [JsonProperty("end_pos")]
     public int EndPos;
+
+    public override string ToString()
+    {
+        return TokenName;
+    }
 }

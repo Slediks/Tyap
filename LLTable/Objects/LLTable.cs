@@ -4,7 +4,7 @@
 public class LLTable
 {
     public readonly List<LLRow> Table = [];
-    private const string End = "#";
+    private const string End = "end";
     private const string Eps = "eps";
 
     private static readonly Dictionary<string, string> Names = new()
@@ -171,6 +171,10 @@ public class LLTable
     private bool CreateEps( string key, LLRow epsRow )
     {
         var newSet = GetEpsSet( key );
+        if (newSet.Contains(epsRow.Name))
+        {
+            newSet.Remove( epsRow.Name );
+        }
 
         if ( newSet.Any( str => str.StartsWith( Eps + "_" ) ) ) return false;
 
@@ -220,7 +224,7 @@ public class LLTable
         var maxId = Math.Max( Names["Id"].Length, Table.Select( row => row.Id.ToString().Length ).Max() );
         var maxName = Math.Max( Names["Name"].Length, Table.Select( row => row.Name.Length ).Max() );
         var maxSet = Math.Max( Names["DirectSet"].Length,
-            Table.Select( row => $"[{String.Join( ", ", row.DirectSet.GetRange( 0, Math.Min( row.DirectSet.Count , 10 ) ) )}]".Length ).Max() );
+            Table.Select( row => $"[{String.Join( ", ", row.DirectSet.GetRange( 0, Math.Min( row.DirectSet.Count , 5 ) ) )}]".Length ).Max() );
         var maxTrans = Names["Transition"].Length;
         var maxError = Names["Error"].Length;
         var maxShift = Names["Shift"].Length;
