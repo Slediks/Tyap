@@ -35,7 +35,31 @@ public class Lexer
         var errorMsg = "Синтаксические ошибки:\n" +
                        String.Join("\n",
                            errors.Select(error =>
-                               $"{error.TokenName} : {error.TokenValue} ({error.Line}:{error.StartPos})"));
+                           {    
+                               var errorDescription = error.TokenName switch
+                               {
+                                   "unterminated_comment" => "Незавершённый многострочный комментарий",
+                                   "unterminated_double_quote" => "Незакрытые двойные кавычки",
+                                   "unterminated_single_quote" => "Незакрытые одинарные кавычки",
+                                   "unterminated_bracket_open" => "Незакрытая круглая скобка",
+                                   "unterminated_brace_open" => "Незакрытая фигурная скобка",
+                                   "unterminated_bracket_sq_open" => "Незакрытая квадратная скобка",
+                                   "overflow_id" => "Слишком длинный идентификатор",
+                                   "invalid_binary" => "Некорректное двоичное число",
+                                   "invalid_octal" => "Некорректное восьмеричное число",
+                                   "invalid_hex" => "Некорректное шестнадцатеричное число",
+                                   "unsupported_number_system" => "Неподдерживаемая система счисления",
+                                   "invalid_float" => "Некорректное число с плавающей точкой",
+                                   "invalid_scientific" => "Некорректная научная нотация",
+                                   "invalid_leading_dot" => "Число начинается с точки без целой части",
+                                   "unterminated_binary" => "Незавершённый префикс двоичного числа",
+                                   "unterminated_octal" => "Незавершённый префикс восьмеричного числа",
+                                   "unterminated_hex" => "Незавершённый префикс шестнадцатеричного числа",
+                                   _ => "Неизвестная ошибка"
+                               };
+                               
+                               return $"{error.TokenName} ({errorDescription}): {error.TokenValue} ({error.Line}:{error.StartPos})";
+                           }));
         throw new Exception(errorMsg);
     }
 }
