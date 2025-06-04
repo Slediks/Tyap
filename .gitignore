@@ -54,6 +54,7 @@ dkms.conf
 lab1/bin/
 lab1/obj/
 LLTable/bin/
+!LLTable/bin/Debug/net6.0/lexer.exe
 LLTable/obj/
 Robot/obj/
 SLRTable/obj/

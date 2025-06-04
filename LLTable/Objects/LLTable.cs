@@ -4,7 +4,7 @@
 public class LLTable
 {
     public readonly List<LLRow> Table = [];
-    private const string End = "#";
+    private const string End = "end";
     private const string Eps = "eps";
 
     private static readonly Dictionary<string, string> Names = new()
@@ -83,46 +83,65 @@ public class LLTable
             }
         }
 
-        foreach ( var row in Table.Where( row => row.Transition == 0 ) )
-        {
-            row.Transition = Table.First( r => r.Name == row.Name && r.IsKey ).Id;
-        }
-
+        FillTransitions();
         GenerateDirectSet();
+    }
+    
+    private void FillTransitions()
+    {
+        foreach (var row in Table.Where(row => row.Transition == 0))
+        {
+            row.Transition = Table.First(r => r.Name == row.Name && r.IsKey).Id;
+        }
     }
 
     private void GenerateDirectSet()
     {
-        foreach ( var row in Table.Where( row => row.DirectSet.Count == 0 ) )
+        InitializeDirectSets();
+        ProcessEpsilonRows();
+        DeleteDouble();
+    }
+    
+    private void InitializeDirectSets()
+    {
+        foreach (var row in Table.Where(row => row.DirectSet.Count == 0))
         {
-            if ( row.DirectSet.Count > 0 ) continue;
+            if (row.DirectSet.Count > 0) continue;
 
-            row.DirectSet.AddRange( row.IsKey
-                ? GetDirectionSet( row.Transition )
-                : Table.Where( r => r.IsKey && r.Name == row.Name ).SelectMany( r => GetDirectionSet( r.Id ) )
-                    .Distinct() );
+            row.DirectSet.AddRange(row.IsKey
+                ? GetDirectionSet(row.Transition)
+                : Table.Where(r => r.IsKey && r.Name == row.Name)
+                    .SelectMany(r => GetDirectionSet(r.Id))
+                    .Distinct());
         }
-
+    }
+    
+    private void ProcessEpsilonRows()
+    {
         var epsCounter = 0;
-        
-        while ( Table.Any( row => row.DirectSet.Any( str => str.StartsWith( Eps + "_" ) ) ) )
+
+        while (Table.Any(row => row.DirectSet.Any(str => str.StartsWith(Eps + "_"))))
         {
             var epsRows = Table
-                .Where( row => row.EpsNumber != null && row.DirectSet.Contains( row.Name ) ).ToList();
-        
-            if ( epsCounter == epsRows.Count ) throw new Exception( "Loop in epsilon" );
+                .Where(row => row.EpsNumber != null && row.DirectSet.Contains(row.Name))
+                .ToList();
+
+            if (epsCounter == epsRows.Count) throw new Exception("Loop in epsilon");
             epsCounter = epsRows.Count;
-        
-            foreach ( var row in epsRows )
+
+            foreach (var row in epsRows)
             {
-                var key = Table.First( r => r.Transition == row.Id ).Name;
-        
-                if ( !CreateEps( key, row ) ) continue;
-                ReplaceEps( row );
+                HandleEpsilonRow(row);
             }
         }
-        
-        DeleteDouble();
+    }
+    
+    private void HandleEpsilonRow(LLRow row)
+    {
+        var key = Table.First(r => r.Transition == row.Id).Name;
+
+        if (!CreateEps(key, row)) return;
+        ReplaceEps(row);
     }
 
     private void DeleteDouble()
@@ -152,6 +171,10 @@ public class LLTable
     private bool CreateEps( string key, LLRow epsRow )
     {
         var newSet = GetEpsSet( key );
+        if (newSet.Contains(epsRow.Name))
+        {
+            newSet.Remove( epsRow.Name );
+        }
 
         if ( newSet.Any( str => str.StartsWith( Eps + "_" ) ) ) return false;
 
@@ -201,7 +224,7 @@ public class LLTable
         var maxId = Math.Max( Names["Id"].Length, Table.Select( row => row.Id.ToString().Length ).Max() );
         var maxName = Math.Max( Names["Name"].Length, Table.Select( row => row.Name.Length ).Max() );
         var maxSet = Math.Max( Names["DirectSet"].Length,
-            Table.Select( row => $"[{String.Join( ", ", row.DirectSet.GetRange( 0, Math.Min( row.DirectSet.Count , 10 ) ) )}]".Length ).Max() );
+            Table.Select( row => $"[{String.Join( ", ", row.DirectSet.GetRange( 0, Math.Min( row.DirectSet.Count , 5 ) ) )}]".Length ).Max() );
         var maxTrans = Names["Transition"].Length;
         var maxError = Names["Error"].Length;
         var maxShift = Names["Shift"].Length;

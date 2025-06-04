@@ -14,7 +14,6 @@ public class LLRow
     public int? Stack;
     public readonly bool IsEnd;
     public readonly bool IsKey;
-    private readonly bool _isWord;
     public int? EpsNumber;
     private readonly string _name;
 
@@ -32,10 +31,9 @@ public class LLRow
         Stack = stack;
         IsEnd = isEnd;
         IsKey = isKey;
-        _isWord = isWord;
         EpsNumber = epsNumber;
 
-        if ( !_isWord ) return;
+        if ( !isWord ) return;
 
         DirectSet.Add( Name );
     }
@@ -55,7 +53,7 @@ public class LLRow
         return String.Format( format,
             Id,
             _name,
-            $"[{String.Join( ", ", DirectSet.GetRange( 0, Math.Min( DirectSet.Count , 10 ) ) )}]",
+            $"[{String.Join( ", ", DirectSet.GetRange( 0, Math.Min( DirectSet.Count , 5 ) ) )}]",
             IntToString( Transition ),
             BoolToString( IsError ),
             BoolToString( IsShift ),
