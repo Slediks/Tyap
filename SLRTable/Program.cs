@@ -11,8 +11,9 @@ static class Program
         var lexer = new Lexer("input.txt");
         
         var rawRules = FileWorker.ReadFileToArray("rules.txt");
-        var filteredRules = FileWorker.FilterRules(rawRules);
-        var dict = FileWorker.ConvertToRulesDict(filteredRules);
+        FileWorker.ValidateRules(rawRules);
+        var dict = FileWorker.ConvertToRulesDict(rawRules);
+        FileWorker.ValidateProductivity(dict);
         var rules = new RulesList( dict );
         
         Console.WriteLine( rules.ToString() );
