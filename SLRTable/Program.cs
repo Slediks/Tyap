@@ -8,6 +8,8 @@ static class Program
 {
     static void Main( string[] args )
     {
+        var lexer = new Lexer("input.txt");
+        
         var rawRules = FileWorker.ReadFileToArray("rules.txt");
         var filteredRules = FileWorker.FilterRules(rawRules);
         var dict = FileWorker.ConvertToRulesDict(filteredRules);
@@ -17,12 +19,11 @@ static class Program
         
         var table = new Table( rules.GetDistItems(), rules );
         
-        var input = FileWorker.ReadFileToString( "input.txt" );
-        var tw = new TableWalker( table );
-        tw.Run( input );
+        
+        var walker = new TableWalker( table, lexer );
+        walker.Run();
 
         using StreamWriter sw = new StreamWriter( "test.csv" );
-        
         sw.WriteLine( table.ToTable() );
     }
 }

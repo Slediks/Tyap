@@ -4,14 +4,12 @@ public class Rule
 {
     public int Index;
     public string Name;
-    public RuleItem RItem;
     public readonly List<RuleItem> RuleItems = [];
 
     public Rule( int index, string name, List<string> ruleItems, List<string> keys )
     {
         Index = index;
         Name = name;
-        RItem = new RuleItem( Index, null, "R", false );
         
         ruleItems.ForEach( ri =>
         {

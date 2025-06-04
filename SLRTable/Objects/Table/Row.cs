@@ -2,16 +2,10 @@
 
 namespace SLRTable.Objects.Table;
 
-public class Row
+public class Row(RowItem key, List<RowItem> items)
 {
-    public RowItem Key;
-    public List<RowItem> Items;
-
-    public Row(RowItem key, List<RowItem> items)
-    {
-        Key = key;
-        Items = items;
-    }
+    public RowItem Key = key;
+    public List<RowItem> Items = items;
 
     public RowItem? GetItemByKey( string key )
     {

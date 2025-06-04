@@ -4,6 +4,7 @@ public class RulesList
 {
     public List<Rule> Rules = [];
     public List<string> Keys;
+    private const string End = "end";
 
     public RulesList( Dictionary<string, List<List<string>>> dict )
     {
@@ -21,10 +22,9 @@ public class RulesList
     public List<string> GetDistItems()
     {
         var notKeyItems = Rules.SelectMany( r => r.GetRuleNotKeyItems() ).Distinct().ToList();
-        if ( notKeyItems.Contains( "#" ) )
+        if ( notKeyItems.Remove( End ) )
         {
-            notKeyItems.Remove( "#" );
-            notKeyItems.Add( "#" );
+            notKeyItems.Add( End );
         }
 
         List<string> result = [];
@@ -36,12 +36,12 @@ public class RulesList
     public List<RuleItem> GetItemsByKey( string key )
     {
         var rules = Rules.Where( r => r.Name == key ).Select( r => r.GetFirst() ).ToList();
-        if ( rules.All( item => item.Name != "#" ) ) return rules;
+        if ( rules.All( item => item.Name != End ) ) return rules;
         
         var newRules = rules.ToList();
-        newRules.RemoveAll( item => item.Name == "#" );
+        newRules.RemoveAll( item => item.Name == End );
 
-        newRules.AddRange( from rule in rules.Where( item => item.Name == "#" )
+        newRules.AddRange( from rule in rules.Where( item => item.Name == End )
             select new RuleItem( rule.ParentIndex, rule.Index, rule.Name, rule.IsKey, true ) );
         return newRules;
     }
@@ -53,7 +53,7 @@ public class RulesList
 
         if ( nextItem == null ) return GetEndItems( rule );
 
-        if ( nextItem.Name == "#" )
+        if ( nextItem.Name == End )
         {
             return [new RuleItem( rule.Index, null, nextItem.Name, false, true )];
         }

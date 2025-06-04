@@ -54,7 +54,7 @@ public static class FileWorker
     {
         var rawRules = ParseRawRules( array );
         ValidateUniqueKeys( rawRules, array.Length );
-        Dictionary<string, List<List<string>>> result = new();
+        Dictionary<string, List<List<string>>> result = [];
         AddStartRule( result, rawRules[0][0] );
 
         foreach ( var line in rawRules )
@@ -83,7 +83,7 @@ public static class FileWorker
 
     private static List<string> ReadAllLines( string fileName )
     {
-        List<string> result = new();
+        List<string> result = [];
         using var sr = new StreamReader( fileName );
         while ( !sr.EndOfStream )
         {
@@ -130,12 +130,12 @@ public static class FileWorker
 
     private static void AddStartRule( Dictionary<string, List<List<string>>> result, string startKey )
     {
-        result.Add( "Z", [new List<string> { startKey, "#" }] );
+        result.Add( "Z", [new List<string> { startKey, "end" }] );
     }
 
     private static void ProcessRule( string[] line, ref Dictionary<string, List<List<string>>> result )
     {
-        result.Add( line[0], new List<List<string>>() );
+        result.Add( line[0], []);
         var variants = ParseVariants( line[1] );
 
         result[line[0]].AddRange( variants );
