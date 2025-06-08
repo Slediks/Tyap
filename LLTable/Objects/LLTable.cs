@@ -140,6 +140,13 @@ public class LLTable
 
             if ( epsCounter == epsRows.Count && epsCounter == 1 ) throw new Exception( "Loop in one epsilon? How?" );
             epsCounter = epsRows.Count;
+            
+            if ( epsCounter == 0 )
+            {
+                var epsRowsSet = Table.Where( row => row.EpsNumber != null ).ToList();
+                epsRowsSet.ForEach( ReplaceEps );
+                continue;
+            }
 
             foreach ( var row in epsRows )
             {
@@ -256,10 +263,7 @@ public class LLTable
         foreach ( var row in Table.Where( row => row.DirectSet.Contains( epsRow.Name ) ) )
         {
             row.DirectSet.Remove( epsRow.Name );
-            List<int> checkedRows = [];
-            row.DirectSet.AddRange( row.IsKey || row.Stack == null
-                ? epsRow.DirectSet
-                : GetDirectionSet( row.Stack, ref checkedRows ) );
+            row.DirectSet.AddRange( epsRow.DirectSet );
         }
     }
 
