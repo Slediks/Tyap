@@ -108,11 +108,23 @@ public class LLTable
         {
             if (row.DirectSet.Count > 0) continue;
 
-            row.DirectSet.AddRange(row.IsKey
-                ? GetDirectionSet(row.Transition)
-                : Table.Where(r => r.IsKey && r.Name == row.Name)
-                    .SelectMany(r => GetDirectionSet(r.Id))
-                    .Distinct());
+            List<string> rowDirSet = [];
+            if ( row.IsKey )
+            {
+                List<int> checkedRows = [];
+                rowDirSet = GetDirectionSet( row.Transition, ref checkedRows);
+            }
+            else
+            {
+                var keyRows = Table.Where(r => r.IsKey && r.Name == row.Name).ToList();
+                foreach ( var keyRow in keyRows )
+                {
+                    List<int> checkedRows = [];
+                    rowDirSet.AddRange( GetDirectionSet( keyRow.Transition, ref checkedRows) );
+                }
+            }
+            
+            row.DirectSet.AddRange( rowDirSet.Distinct() );
         }
     }
     
@@ -149,22 +161,32 @@ public class LLTable
         Table.ForEach( row => row.DirectSet = row.DirectSet.Distinct().ToList() );
     }
 
-    private List<string> GetDirectionSet( int? id )
+    private List<string> GetDirectionSet( int? id, ref List<int> checkedRows )
     {
+        if (id != null && !checkedRows.Contains( id.Value )) checkedRows.Add( id.Value );
         var thatRow = Table.First( row => row.Id == id );
 
         if ( !thatRow.IsKey )
             return thatRow.DirectSet.Count > 0
                 ? thatRow.DirectSet
-                : GetDirectionSet( thatRow.Transition );
+                : GetDirectionSet( thatRow.Transition, ref checkedRows );
         
         List<string> dirSet = [];
-        Table.Where( row => row.IsKey && row.Name == thatRow.Name ).ToList().ForEach( row =>
+        var keyRows = Table.Where( row => row.IsKey && row.Name == thatRow.Name ).ToList();
+        foreach ( var row in keyRows )
         {
-            dirSet.AddRange( row.DirectSet.Count > 0
-                ? row.DirectSet
-                : GetDirectionSet( row.Transition ) );
-        } );
+            List<string> rowDirSet = [];
+            if ( row.DirectSet.Count > 0 )
+            {
+                rowDirSet = row.DirectSet;
+            }
+            else if ( !checkedRows.Contains( row.Transition!.Value ))
+            {
+                rowDirSet = GetDirectionSet( row.Transition, ref checkedRows );
+            }
+            
+            dirSet.AddRange( rowDirSet );
+        }
         return dirSet.Distinct().ToList();
     }
 
@@ -209,7 +231,8 @@ public class LLTable
         foreach ( var row in Table.Where( row => row.DirectSet.Contains( epsRow.Name ) ) )
         {
             row.DirectSet.Remove( epsRow.Name );
-            row.DirectSet.AddRange( row.IsKey || row.Stack == null ? epsRow.DirectSet : GetDirectionSet( row.Stack ) );
+            List<int> checkedRows = [];
+            row.DirectSet.AddRange( row.IsKey || row.Stack == null ? epsRow.DirectSet : GetDirectionSet( row.Stack, ref checkedRows ) );
         }
     }
 

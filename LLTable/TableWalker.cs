@@ -3,7 +3,7 @@ using LLTable.Objects;
 
 namespace LLTable;
 
-public class TableWalker(Objects.LLTable table, Lexer lexer)
+public class TableWalker( Objects.LLTable table, Lexer lexer )
 {
     private Token? _currentToken;
     private int _nextTokenIndex;
@@ -16,52 +16,52 @@ public class TableWalker(Objects.LLTable table, Lexer lexer)
         int ruleIndex = 1;
         bool isEnd = false;
 
-        while (_currentToken != null)
+        while ( _currentToken != null )
         {
-            CheckRule(ruleIndex, _currentToken.Value.TokenName, out var nextIndex, out var stackIndex, out var isShift,
-                out isEnd, ref path);
+            CheckRule( ruleIndex, _currentToken.Value.TokenName, out var nextIndex, out var stackIndex, out var isShift,
+                out isEnd, ref path );
 
-            if (isShift)
+            if ( isShift )
             {
                 NextToken();
             }
 
-            if (isEnd)
+            if ( isEnd )
             {
                 if ( _currentToken != null )
                 {
-                    if (isShift)
+                    if ( isShift )
                     {
-                        Console.WriteLine("Программа завершила свое выполнение, но слова не закончились");
+                        Console.WriteLine( "Программа завершила свое выполнение, но слова не закончились" );
                         Console.WriteLine(
-                            $"Следующее слово: {_currentToken.Value.TokenValue} ({_currentToken.Value.Line}:{_currentToken.Value.StartPos})");
+                            $"Следующее слово: {_currentToken.Value.TokenValue} ({_currentToken.Value.Line}:{_currentToken.Value.StartPos})" );
                     }
-                    
+
                     isEnd = false;
                 }
 
                 break;
             }
 
-            if (stackIndex != null)
+            if ( stackIndex != null )
             {
-                stack.Add((int)stackIndex);
+                stack.Add( (int)stackIndex );
             }
 
-            if (nextIndex != null)
+            if ( nextIndex != null )
             {
                 ruleIndex = nextIndex.Value;
             }
             else
             {
                 ruleIndex = stack.Last();
-                stack.RemoveAt(stack.Count - 1);
+                stack.RemoveAt( stack.Count - 1 );
             }
         }
 
-        Console.WriteLine(isEnd ? "Тест пройден успешно" : "Тест не пройден((");
+        Console.WriteLine( isEnd ? "Тест пройден успешно" : "Тест не пройден((" );
         Console.WriteLine();
-        Console.WriteLine($"Пройденный путь: {String.Join(", ", path)}");
+        Console.WriteLine( $"Пройденный путь: {String.Join( ", ", path )}" );
     }
 
     private bool HasNextToken() => _nextTokenIndex < lexer.Tokens.Count;
@@ -70,24 +70,24 @@ public class TableWalker(Objects.LLTable table, Lexer lexer)
 
     private void NextToken()
     {
-        if (_currentToken == null && !HasNextToken()) return;
+        if ( _currentToken == null && !HasNextToken() ) return;
         do
         {
             _currentToken = GetNextToken();
             _nextTokenIndex++;
-        } while (_currentToken is { Type: "comment" });
+        } while ( _currentToken is { Type: "comment" } );
     }
 
-    private void CheckRule(int ruleIndex, string word, out int? nextIndex, out int? stack, out bool isShift,
-        out bool isEnd, ref List<int> path)
+    private void CheckRule( int ruleIndex, string word, out int? nextIndex, out int? stack, out bool isShift,
+        out bool isEnd, ref List<int> path )
     {
-        var currentRule = table.Table.First(row => row.Id == ruleIndex);
-        if (!currentRule.DirectSet.Contains(word))
+        var currentRule = table.Table.First( row => row.Id == ruleIndex );
+        if ( !currentRule.DirectSet.Contains( word ) )
         {
-            if (currentRule.IsError)
+            if ( currentRule.IsError )
             {
                 Console.WriteLine(
-                    $"Слово '{word}' не подходит правилу {ruleIndex}({String.Join(", ", currentRule.DirectSet)})");
+                    $"Слово {_currentToken.Value.TokenName}({_currentToken.Value.TokenValue}) ({_currentToken.Value.Line}:{_currentToken.Value.StartPos}) не подходит правилу {ruleIndex}({String.Join( ", ", currentRule.DirectSet )})" );
                 nextIndex = null;
                 stack = null;
                 isShift = false;
@@ -95,7 +95,7 @@ public class TableWalker(Objects.LLTable table, Lexer lexer)
                 return;
             }
 
-            CheckRule(ruleIndex + 1, word, out nextIndex, out stack, out isShift, out isEnd, ref path);
+            CheckRule( ruleIndex + 1, word, out nextIndex, out stack, out isShift, out isEnd, ref path );
             return;
         }
 
@@ -103,6 +103,6 @@ public class TableWalker(Objects.LLTable table, Lexer lexer)
         stack = currentRule.Stack;
         isShift = currentRule.IsShift;
         isEnd = currentRule.IsEnd;
-        path.Add(ruleIndex);
+        path.Add( ruleIndex );
     }
 }
