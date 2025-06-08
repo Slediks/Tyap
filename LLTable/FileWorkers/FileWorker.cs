@@ -179,9 +179,19 @@ public static class FileWorker
 
     private static List<List<string>> RemoveRecursiveVariants(string key, List<List<string>> variants, string newName)
     {
-        return variants.Where(variant => variant.First() != key)
+        var  newVariants = variants.Where(variant => variant.First() != key)
             .Select(variant => variant.Append(newName).ToList())
             .ToList();
+        while (newVariants.Any(variant => variant.First() == "eps"))
+        {
+            foreach (var list in newVariants.Where(
+                         variant => variant.First() == "eps"))
+            {
+                list.RemoveAt(0);
+            }
+        }
+        
+        return newVariants;
     }
 
     private static void RemoveSameStart( string name, ref List<List<string>> variants, ref int ruleCount,
